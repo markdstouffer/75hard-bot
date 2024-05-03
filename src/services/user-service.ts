@@ -3,10 +3,10 @@ import {Table} from "@internalTypes/database";
 import {User} from "discord.js";
 
 export class UserService {
-    public static addUser = (user: User) => {
-        const { id, username } = user;
+    public static addUser = async (user: User) => {
+        const {id, username} = user;
 
-        return supabase
+        const {data, error} = await supabase
             .from(Table.Users)
             .insert([
                 {
@@ -15,5 +15,10 @@ export class UserService {
                 }
             ])
             .select();
+
+        if (error)
+            throw error;
+
+        return data;
     }
 }
