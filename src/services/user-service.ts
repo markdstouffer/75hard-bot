@@ -1,9 +1,9 @@
 import {supabase} from "@utils/supabase";
-import {Table} from "@internalTypes/database";
+import {DatabaseUser, Table} from "@internalTypes/database";
 import {User} from "discord.js";
 
 export class UserService {
-    public static addUser = async (user: User) => {
+    public static addUser = async (user: User): Promise<DatabaseUser[]> => {
         const {id, username} = user;
 
         const {data, error} = await supabase
@@ -19,6 +19,6 @@ export class UserService {
         if (error)
             throw error;
 
-        return data;
+        return data as DatabaseUser[];
     }
 }
