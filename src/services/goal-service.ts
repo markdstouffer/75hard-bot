@@ -4,7 +4,7 @@ import {Function, Goal, Table} from "@internalTypes/database";
 
 export class GoalService {
 
-    public static addGoal = async (user: User, title: string, description: string | null, isDaily: boolean | null): Promise<Goal> => {
+    public static add = async (user: User, title: string, description: string | null, isDaily: boolean | null): Promise<Goal> => {
         const {id, username} = user;
 
         const {data, error} = await supabase
@@ -24,7 +24,7 @@ export class GoalService {
         return data;
     }
 
-    public static getUserGoals = async (user: User): Promise<Goal[]> => {
+    public static getAllForUser = async (user: User): Promise<Goal[]> => {
         const {id, username} = user;
 
         const {data, error} = await supabase

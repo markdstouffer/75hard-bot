@@ -43,7 +43,7 @@ module.exports = {
                 const description = interaction.options.getString("description");
                 const isDaily = interaction.options.getBoolean("is_daily");
                 try {
-                    await GoalService.addGoal(interaction.user, title, description, isDaily);
+                    await GoalService.add(interaction.user, title, description, isDaily);
                     await interaction.reply({
                         content: `The goal, '**${title}**', is now being tracked!`,
                         ephemeral: true
@@ -63,7 +63,7 @@ module.exports = {
                     : interaction.user;
 
                 try {
-                    const goals = await GoalService.getUserGoals(user);
+                    const goals = await GoalService.getAllForUser(user);
 
                     if (goals.length === 0) {
                         await interaction.reply({content: `User ${user.username} has no goals set. \`/goal add\``});
@@ -73,8 +73,17 @@ module.exports = {
                     let goalsString = "";
                     let prevWasDaily = goals[0].is_daily;
 
-                    goals.sort((a, b) => a.is_daily ? -1 : 1);
-
+                    goals.sort((a, b) => {
+                       if (!a.is_daily && !b.is_daily) {
+                           return a.id - b.id;
+                       } else if (!a.is_daily) {
+                           return 1;
+                       } else if (!b.is_daily) {
+                           return -1;
+                       } else {
+                           return a.id - b.id;
+                       }
+                    });
 
                     for (let i = 0; i < goals.length; i++) {
                         const goal = goals[i];
@@ -83,15 +92,13 @@ module.exports = {
                         } else if (prevWasDaily) {
                             prevWasDaily = false;
 
-                            goalsString += "\nNON-DAILY GOALS\n";
-                            goalsString += "==============================================\n";
+                            goalsString += "\n__Non-Daily Goals__\n";
                             goalsString += `- ${goal.title}`;
                         } else {
                             goalsString += `- ${goal.title}`;
                         }
                         goalsString += "\n";
                     }
-
 
                     const embed = new EmbedBuilder()
                         .setTitle(`75HARD Goals for ${user.username}`)
