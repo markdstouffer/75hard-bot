@@ -1,6 +1,6 @@
 import {User} from "discord.js";
 import {supabase} from "@utils/supabase";
-import {Function, Goal} from "@internalTypes/database";
+import {Function, Goal, Table} from "@internalTypes/database";
 
 export class GoalService {
 
@@ -22,6 +22,23 @@ export class GoalService {
             throw error;
 
         return data;
+    }
+
+    public static getUserGoals = async (user: User): Promise<Goal[]> => {
+        const {id, username} = user;
+
+        const {data, error} = await supabase
+            .from(Table.Users)
+            .select(`
+                discord_id,
+                ${Table.Goals} (*)
+            `)
+            .eq("discord_id", id);
+
+        if (error)
+            throw error;
+
+        return data.length > 0 ? data[0].goals : [];
     }
 
 }
