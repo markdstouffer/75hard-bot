@@ -23,7 +23,21 @@ module.exports = {
                         .setName("description")
                         .setDescription("Description of the punishment to second")
                         .setAutocomplete(true)
-                        .setRequired(true))),
+                        .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("remove")
+                .setDescription("Remove a suggested punishment")
+                .addStringOption(option =>
+                    option
+                        .setName("description")
+                        .setDescription("Description of the punishment to remove")
+                        .setAutocomplete(true)
+                        .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("list")
+                .setDescription("List all punishments")),
     async execute(interaction: ChatInputCommandInteraction) {
         const subcommand = interaction.options.getSubcommand();
 
@@ -76,6 +90,73 @@ module.exports = {
                     console.error(error);
                     await interaction.reply({
                         content: "Something went wrong with seconding this punishment...",
+                        ephemeral: true
+                    });
+                }
+                break;
+            case "remove":
+                const punishmentToRemove = interaction.options.getString("description")!;
+                try {
+                    await PunishmentService.remove(punishmentToRemove);
+                    await interaction.reply({
+                        content: `Removed punishment '**${punishmentToRemove}'**`,
+                        ephemeral: true
+                    })
+                } catch (error) {
+                    console.error(error);
+                    await interaction.reply({
+                        content: `${error}`,
+                        ephemeral: true
+                    })
+                }
+                break;
+            case "list":
+                try {
+                    const punishments = await PunishmentService.getAll();
+
+                    let punishmentsString = "";
+                    let prevWasSeconded = punishments[0].is_seconded;
+
+                    punishments.sort((a, b) => {
+                        if (!a.is_seconded && !b.is_seconded) {
+                            return a.id - b.id;
+                        } else if (!a.is_seconded) {
+                            return 1;
+                        } else if (!b.is_seconded) {
+                            return -1;
+                        } else {
+                            return a.id - b.id;
+                        }
+                    });
+
+                    for (let i = 0; i < punishments.length; i++) {
+                        const punishment = punishments[i];
+                        if (punishment.is_seconded) {
+                            punishmentsString += `- ${punishment.description}`;
+                        } else if (prevWasSeconded) {
+                            prevWasSeconded = false;
+
+                            punishmentsString += "\n__Proposed punishments__\n";
+                            punishmentsString += `- ${punishment.description}`;
+                        } else {
+                            punishmentsString += `- ${punishment.description}`;
+                        }
+                        punishmentsString += "\n";
+                    }
+
+                    const embed = new EmbedBuilder()
+                        .setTitle("Punishments")
+                        .setDescription(punishmentsString)
+                        .setFooter({
+                            text: `Requested by ${interaction.user.username}`,
+                            iconURL: interaction.user.avatarURL() ?? undefined
+                        });
+
+                    await interaction.reply({embeds: [embed]});
+                } catch (error) {
+                    console.error(error);
+                    await interaction.reply({
+                        content: "Something went wrong when listing all punishments...",
                         ephemeral: true
                     });
                 }

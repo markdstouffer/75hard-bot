@@ -22,6 +22,24 @@ export class PunishmentService {
         return data;
     }
 
+    public static remove = async (description: string): Promise<Punishment[]> => {
+        const {data, error} = await supabase
+            .from(Table.Punishments)
+            .delete()
+            .eq("description", description)
+            .eq("is_seconded", false)
+            .select()
+
+        if (error)
+            throw error;
+
+        if (!data || data.length === 0) {
+            throw new Error("No punishments matched the given description");
+        }
+
+        return data;
+    }
+
     public static second = async (user: User, punishmentDescription: string): Promise<boolean> => {
         const {id, username} = user;
 
