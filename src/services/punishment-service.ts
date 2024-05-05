@@ -61,7 +61,7 @@ export class PunishmentService {
     public static getAll = async (): Promise<Punishment[]> => {
         const {data, error} = await supabase
             .from(Table.Punishments)
-            .select("*");
+            .select();
 
         if (error)
             throw error;

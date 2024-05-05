@@ -5,3 +5,6 @@ export {Function} from "./function";
 export {Goal} from "./goal";
 export {Punishment} from "./punishment";
 export {Failure} from "./failure";
+export {Forgive} from "./forgive";
+export {AddForgivePayload} from "./add-forgive-payload";
+export {CompleteFailure} from "./complete-failure";
