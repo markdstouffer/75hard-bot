@@ -42,7 +42,7 @@ module.exports = {
         }
     },
     async autocomplete(interaction: AutocompleteInteraction) {
-        const userGoals = await GoalService.getAllForUser(interaction.user);
+        const userGoals = await GoalService.getAllActiveForUser(interaction.user);
         const userGoalTitles = userGoals.map(goal => goal.title);
 
         const focusedValue = interaction.options.getFocused();

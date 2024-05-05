@@ -24,7 +24,7 @@ export class GoalService {
         return data;
     }
 
-    public static getAllForUser = async (user: User): Promise<Goal[]> => {
+    public static getAllActiveForUser = async (user: User): Promise<Goal[]> => {
         const {id, username} = user;
 
         const {data, error} = await supabase
@@ -33,12 +33,26 @@ export class GoalService {
                 discord_id,
                 ${Table.Goals} (*)
             `)
-            .eq("discord_id", id);
+            .eq("discord_id", id)
+            .eq("goals.is_active", true);
 
         if (error)
             throw error;
 
         return data.length > 0 ? data[0].goals : [];
+    }
+
+    public static markInactive = async (goalId: number): Promise<Goal[]> => {
+        const {data, error} = await supabase
+            .from(Table.Goals)
+            .update({"is_active": false})
+            .eq("id", goalId)
+            .select();
+
+        if (error)
+            throw error;
+
+        return data;
     }
 
 }

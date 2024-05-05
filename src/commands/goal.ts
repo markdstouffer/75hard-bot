@@ -1,4 +1,11 @@
-import {ChatInputCommandInteraction, EmbedBuilder, GuildMember, SlashCommandBuilder, User} from "discord.js";
+import {
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    EmbedBuilder,
+    GuildMember,
+    SlashCommandBuilder,
+    User
+} from "discord.js";
 import {GoalService} from "@services/goal-service";
 
 module.exports = {
@@ -32,8 +39,17 @@ module.exports = {
                     option
                         .setName("is_daily")
                         .setDescription("Is this something you need to complete every day? (default TRUE)")
-                        .setRequired(false))
-        ),
+                        .setRequired(false)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("remove")
+                .setDescription("Mark one of your goals as inactive")
+                .addStringOption(option =>
+                    option
+                        .setName("title")
+                        .setDescription("Title of the goal to remove")
+                        .setAutocomplete(true)
+                        .setRequired(true))),
     async execute(interaction: ChatInputCommandInteraction) {
         const subcommand = interaction.options.getSubcommand();
 
@@ -63,7 +79,7 @@ module.exports = {
                     : interaction.user;
 
                 try {
-                    const goals = await GoalService.getAllForUser(user);
+                    const goals = await GoalService.getAllActiveForUser(user);
 
                     if (goals.length === 0) {
                         await interaction.reply({content: `User ${user.username} has no goals set. \`/goal add\``});
@@ -114,8 +130,38 @@ module.exports = {
                     });
                 }
                 break;
+            case "remove":
+                const goalToRemove = interaction.options.getString("title")!;
+
+                try {
+                    const updateResponse = await GoalService.markInactive(parseInt(goalToRemove));
+                    const updatedGoal = updateResponse[0];
+
+                    await interaction.reply({content: `You have marked goal **${updatedGoal.title}** as inactive.`, ephemeral: true});
+                } catch (error) {
+                    console.error(error);
+                    await interaction.reply({
+                        content: "Something went wrong when trying to mark this goal inactive...",
+                        ephemeral: true
+                    });
+                }
+
+                break;
             default:
                 await interaction.reply({content: "You need to pick a subcommand!", ephemeral: true});
         }
+    },
+    async autocomplete(interaction: AutocompleteInteraction) {
+        const userGoals = await GoalService.getAllActiveForUser(interaction.user);
+        const userGoalsData = userGoals.map(goal => ({
+            name: goal.title,
+            value: goal.id
+        }));
+
+        const focusedValue = interaction.options.getFocused();
+        const filteredChoices = userGoalsData.filter(choice => choice.name.startsWith(focusedValue));
+        await interaction.respond(
+            filteredChoices.map(choice => ({name: choice.name, value: choice.value.toString()}))
+        );
     }
 }
