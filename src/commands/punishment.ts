@@ -17,7 +17,7 @@ module.exports = {
         .addSubcommand(subcommand =>
             subcommand
                 .setName("second")
-                .setDescription("Vote to approve a punishment into the roster (must not be the user who suggested it)")
+                .setDescription("Vote to approve a punishment into the roster (you must not be the user who suggested it)")
                 .addStringOption(option =>
                     option
                         .setName("description")
