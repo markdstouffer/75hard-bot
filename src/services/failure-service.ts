@@ -4,14 +4,15 @@ import {Failure, CompleteFailure, Function, Table} from "@internalTypes/database
 
 export class FailureService {
 
-    public static add = async (user: User, goalTitle: string): Promise<Failure> => {
+    public static add = async (user: User, goalTitle: string, punishmentId: number): Promise<Failure> => {
         const {id} = user;
 
         const {data, error} = await supabase
             .rpc(
                 Function.AddFailure, {
                     _discord_id: id,
-                    _goal_title: goalTitle
+                    _goal_title: goalTitle,
+                    _punishment_id: punishmentId
                 }
             );
 
@@ -54,6 +55,28 @@ export class FailureService {
         }
 
         return data[0];
+    }
+
+    public static getAllForUser = async (user: User): Promise<CompleteFailure[]> => {
+        const {id} = user;
+
+        const {data, error} = await supabase
+            .from(Table.Failures)
+            .select(`
+                *,
+                ${Table.Goals} (title),
+                ${Table.Users} (username, id)
+            `)
+            .eq("users.id", id)
+
+        if (error)
+            throw error;
+
+        if (!data) {
+            throw new Error("There are no failures for a user with that id.");
+        }
+
+        return data;
     }
 
 }
