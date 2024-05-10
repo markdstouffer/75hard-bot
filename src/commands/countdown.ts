@@ -2,24 +2,7 @@ import {
     ChatInputCommandInteraction,
     SlashCommandBuilder
 } from "discord.js";
-
-function timeUntil(date: Date) {
-
-    function z(n: number) {
-        return (n < 10 ? '0' : '') + n;
-    }
-
-    let diff = date.getTime() - Date.now();
-
-    const sign = diff < 0? '-' : '';
-    diff = Math.abs(diff);
-    
-    const hours = diff/3.6e6 | 0;
-    const mins  = diff%3.6e6 / 6e4 | 0;
-    const secs  = Math.round(diff%6e4 / 1e3);
-
-    return sign + z(hours) + ':' + z(mins) + ':' + z(secs);
-}
+import {timeUntil} from "@utils/time";
 
 function addDays(date: Date, days: number) {
     const result = new Date(date);
@@ -36,8 +19,12 @@ module.exports = {
         const startDate = new Date("May 05, 2024 00:00:00");
         const endDate = addDays(startDate, 75);
 
-        const timeUntilEnd = timeUntil(endDate);
+        const timeSpan = timeUntil(endDate);
 
-        await interaction.reply({content: timeUntilEnd})
+        await interaction.reply({
+            content: `There are **${timeSpan.days}** days, ` +
+                `**${timeSpan.hours}** hours, **${timeSpan.minutes}** minutes, ` +
+                `and **${timeSpan.seconds}** seconds left in this challenge.`
+        });
     }
 }
