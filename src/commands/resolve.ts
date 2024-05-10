@@ -11,12 +11,12 @@ import {FailureService} from "@services/failure-service";
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("fail")
-        .setDescription("Admit to a failure of one of your goals")
+        .setName("resolve")
+        .setDescription("Mark a punishment for a failure as completed")
         .addStringOption(option =>
             option
-                .setName("goal")
-                .setDescription("Which goal you failed on today")
+                .setName("punishment")
+                .setDescription("Which punishment you completed")
                 .setAutocomplete(true)
                 .setRequired(true)),
     async execute(interaction: ChatInputCommandInteraction) {
@@ -42,13 +42,16 @@ module.exports = {
         }
     },
     async autocomplete(interaction: AutocompleteInteraction) {
-        const userGoals = await GoalService.getAllActiveForUser(interaction.user);
-        const userGoalTitles = userGoals.map(goal => goal.title);
+        // const userGoals = await GoalService.getAllActiveForUser(interaction.user);
+        // const userGoalTitles = userGoals.map(goal => goal.title);
 
-        const focusedValue = interaction.options.getFocused();
-        const filteredChoices = userGoalTitles.filter(choice => choice.startsWith(focusedValue));
-        await interaction.respond(
-            filteredChoices.map(choice => ({name: choice, value: choice}))
-        );
+        const userPunishments = await FailureService.getAllForUser(interaction.user);
+
+
+        // const focusedValue = interaction.options.getFocused();
+        // const filteredChoices = userGoalTitles.filter(choice => choice.startsWith(focusedValue));
+        // await interaction.respond(
+        //     filteredChoices.map(choice => ({name: choice, value: choice}))
+        // );
     }
 }
