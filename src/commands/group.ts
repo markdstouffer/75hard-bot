@@ -67,18 +67,18 @@ module.exports = {
                 break;
             case "start":
                 const startDate = interaction.options.getString("date")!;
-                const formattedStartDate = new Date(startDate).toLocaleDateString();
+                const adjustedStartDate = new Date(startDate);
 
                 try {
                     const group = await GroupService.getForUser(interaction.user);
                     const groupMembers = await UserService.getAllForGroup(group.id);
                     const groupMemberNames = groupMembers.map(member => member.username);
 
-                    await GroupService.start(group.id, startDate);
+                    await GroupService.start(group.id, adjustedStartDate.toISOString());
 
                     const embed = new EmbedBuilder()
                         .setTitle("A group's start time has been set!")
-                        .setDescription(`The group containing user(s) ${groupMemberNames.join(", ")} will begin on ${formattedStartDate}.`)
+                        .setDescription(`The group containing user(s) ${groupMemberNames.join(", ")} will begin on ${adjustedStartDate.toLocaleDateString()}.`)
                         .setFooter({
                             text: `Set by ${interaction.user.username}`,
                             iconURL: interaction.user.avatarURL() ?? undefined
