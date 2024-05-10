@@ -20,38 +20,46 @@ module.exports = {
                 .setAutocomplete(true)
                 .setRequired(true)),
     async execute(interaction: ChatInputCommandInteraction) {
-        const failedGoal = interaction.options.getString("goal")!;
+        const failure = interaction.options.getString("punishment")!;
 
         try {
-            const randomPunishment = await PunishmentService.getRandom();
+            const failureId = parseInt(failure);
 
-            await FailureService.add(interaction.user, failedGoal, randomPunishment.id);
+            await FailureService.resolve(failureId);
+            const completedFailure = await FailureService.getById(failureId);
+
 
             const embed = new EmbedBuilder()
-                .setTitle(`${interaction.user.username} has failed on a goal`)
+                .setTitle(`${interaction.user.username} has completed a punishment`)
+                .setDescription("They are cleared of all wrong-doing!")
                 .addFields([
-                    {name: "Goal", value: failedGoal},
-                    {name: "Punishment", value: randomPunishment.description}
+                    {name: "Failed goal", value: completedFailure.goals!.title},
+                    {name: "Completed punishment", value: completedFailure.punishments!.description}
                 ])
-                .setColor(Colors.Red);
+                .setColor(Colors.Green);
 
             await interaction.reply({embeds: [embed]});
 
         } catch (error) {
+            console.error(error);
             await interaction.reply({content: "Something went wrong...", ephemeral: true});
         }
     },
     async autocomplete(interaction: AutocompleteInteraction) {
-        // const userGoals = await GoalService.getAllActiveForUser(interaction.user);
-        // const userGoalTitles = userGoals.map(goal => goal.title);
+        const userActiveFailures = await FailureService.getActiveForUser(interaction.user);
 
-        const userPunishments = await FailureService.getAllForUser(interaction.user);
+        const payload = userActiveFailures.map(failure => {
+            const shortDate = new Date(failure.failed_at).toLocaleDateString();
+            const content = `${failure.goals!.title} (${shortDate}) - ${failure.punishments!.description}`.substring(0, 95) + "...";
+            return {
+                id: failure.id, content
+            }
+        });
 
-
-        // const focusedValue = interaction.options.getFocused();
-        // const filteredChoices = userGoalTitles.filter(choice => choice.startsWith(focusedValue));
-        // await interaction.respond(
-        //     filteredChoices.map(choice => ({name: choice, value: choice}))
-        // );
+        const focusedValue = interaction.options.getFocused();
+        const filteredChoices = payload.filter(choice => choice.content.startsWith(focusedValue));
+        await interaction.respond(
+            filteredChoices.map(choice => ({name: choice.content, value: choice.id.toString()}))
+        );
     }
 }
