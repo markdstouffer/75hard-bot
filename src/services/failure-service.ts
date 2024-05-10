@@ -7,11 +7,13 @@ export class FailureService {
     public static add = async (user: User, goalTitle: string): Promise<Failure> => {
         const {id} = user;
 
+        // TO-DO: attach punishment_id
         const {data, error} = await supabase
             .rpc(
                 Function.AddFailure, {
                     _discord_id: id,
-                    _goal_title: goalTitle
+                    _goal_title: goalTitle,
+                    _punishment_id: 1
                 }
             );
 

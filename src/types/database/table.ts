@@ -3,5 +3,6 @@ export enum Table {
     Goals = 'goals',
     Failures = 'failures',
     Punishments = 'punishments',
-    Forgives = 'forgives'
+    Forgives = 'forgives',
+    Groups = 'groups'
 }
