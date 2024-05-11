@@ -38,7 +38,12 @@ module.exports = {
                 .addBooleanOption(option =>
                     option
                         .setName("is_daily")
-                        .setDescription("Is this something you need to complete every day? (default TRUE)")
+                        .setDescription("Is this something you need to complete every day? (default FALSE)")
+                        .setRequired(false))
+                .addNumberOption(option =>
+                    option
+                        .setName("frequency")
+                        .setDescription("Number of times per week that the goal must be completed")
                         .setRequired(false)))
         .addSubcommand(subcommand =>
             subcommand
@@ -58,8 +63,15 @@ module.exports = {
                 const title = interaction.options.getString("title")!;
                 const description = interaction.options.getString("description");
                 const isDaily = interaction.options.getBoolean("is_daily");
+                const frequency = interaction.options.getNumber("frequency");
+
                 try {
-                    await GoalService.add(interaction.user, title, description, isDaily);
+                    if (isDaily && frequency !== null && frequency !== 7) {
+                        await interaction.reply({content: "Daily goals must have a frequency of 7.", ephemeral: true});
+                        break;
+                    }
+
+                    await GoalService.add(interaction.user, title, description, isDaily, frequency);
                     await interaction.reply({
                         content: `The goal, '**${title}**', is now being tracked!`,
                         ephemeral: true

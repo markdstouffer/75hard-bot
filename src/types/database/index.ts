@@ -9,3 +9,4 @@ export {Forgive} from "./forgive";
 export {AddForgivePayload} from "./add-forgive-payload";
 export {CompleteFailure} from "./complete-failure";
 export {Group} from "./group";
+export {Progress} from "./progress";
