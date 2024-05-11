@@ -3,5 +3,6 @@ export enum Function {
     AddPunishment = "add_punishment",
     SecondPunishment = "second_punishment",
     AddFailure = "add_failure",
-    AddForgive = "add_forgive"
+    AddForgive = "add_forgive",
+    UpdateProgress = "update_progress"
 }

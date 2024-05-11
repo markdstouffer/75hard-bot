@@ -2,6 +2,8 @@ import {Client, Collection, Events, GatewayIntentBits, REST, Routes} from "disco
 import {configDotenv} from "dotenv";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import {CronJob} from "cron";
+import {ProgressService} from "@services/progress-service";
 
 configDotenv();
 
@@ -78,6 +80,16 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 });
+
+const weeklyProgressUpdateJob = new CronJob(
+    '0 0 * * 0',
+    async () => {
+        await ProgressService.weeklyUpdate()
+    },
+    null,
+    true,
+    'America/New_York'
+);
 
 
 client.login(BOT_TOKEN);
