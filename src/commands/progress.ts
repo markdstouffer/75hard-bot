@@ -16,6 +16,8 @@ module.exports = {
             if (trackedProgress.length === 0) {
                 await interaction.reply({content: "You have no tracked goals. `/goal add`", ephemeral: true});
             } else {
+                trackedProgress.sort((a, b) => a.goal_id - b.goal_id);
+
                 const embed = new EmbedBuilder()
                     .setTitle(`Weekly progress for ${interaction.user.username}`)
                     .setColor(Colors.Blurple)
@@ -24,7 +26,7 @@ module.exports = {
                 let progressString = "";
 
                 for (const progress of trackedProgress) {
-                    progressString += `- ${progress.goals!.title} - ${progress.completions}/${progress.goals!.frequency}\n`;
+                    progressString += `- **${progress.completions}/${progress.goals!.frequency}**: *${progress.goals!.title}*\n`;
                 }
 
                 embed.setDescription(progressString);
