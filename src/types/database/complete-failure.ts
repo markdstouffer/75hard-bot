@@ -6,5 +6,8 @@ export type CompleteFailure = Failure & {
     } | null,
     users: {
         username: string
+    } | null,
+    punishments?: {
+        description: string
     } | null
 }

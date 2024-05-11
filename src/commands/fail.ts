@@ -23,9 +23,9 @@ module.exports = {
         const failedGoal = interaction.options.getString("goal")!;
 
         try {
-            await FailureService.add(interaction.user, failedGoal);
-
             const randomPunishment = await PunishmentService.getRandom();
+
+            await FailureService.add(interaction.user, failedGoal, randomPunishment.id);
 
             const embed = new EmbedBuilder()
                 .setTitle(`${interaction.user.username} has failed on a goal`)

@@ -1,5 +1,12 @@
-import {AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder} from "discord.js";
+import {
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    Colors,
+    EmbedBuilder,
+    SlashCommandBuilder
+} from "discord.js";
 import {PunishmentService} from "@services/punishment-service";
+import {FailureService} from "@services/failure-service";
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -37,7 +44,19 @@ module.exports = {
         .addSubcommand(subcommand =>
             subcommand
                 .setName("list")
-                .setDescription("List all punishments")),
+                .setDescription("List all punishments")
+                .addStringOption(option =>
+                    option
+                        .setName("scope")
+                        .setDescription("List punishments in the roster, your pending punishments, or all pending punishments")
+                        .setRequired(true)
+                        .addChoices(
+                            {name: "roster", value: "roster"},
+                            {name: "mine", value: "mine"},
+                            {name: "all", value: "all"}
+                        )
+                )
+        ),
     async execute(interaction: ChatInputCommandInteraction) {
         const subcommand = interaction.options.getSubcommand();
 
@@ -111,55 +130,126 @@ module.exports = {
                 }
                 break;
             case "list":
-                try {
-                    const punishments = await PunishmentService.getAll();
+                const scope = interaction.options.getString("scope")!;
 
-                    let punishmentsString = "";
-                    let prevWasSeconded = punishments[0].is_seconded;
+                switch (scope) {
+                    case "roster":
+                        try {
+                            const punishments = await PunishmentService.getAll();
 
-                    punishments.sort((a, b) => {
-                        if (!a.is_seconded && !b.is_seconded) {
-                            return a.id - b.id;
-                        } else if (!a.is_seconded) {
-                            return 1;
-                        } else if (!b.is_seconded) {
-                            return -1;
-                        } else {
-                            return a.id - b.id;
+                            let punishmentsString = "";
+                            let prevWasSeconded = punishments[0].is_seconded;
+
+                            punishments.sort((a, b) => {
+                                if (!a.is_seconded && !b.is_seconded) {
+                                    return a.id - b.id;
+                                } else if (!a.is_seconded) {
+                                    return 1;
+                                } else if (!b.is_seconded) {
+                                    return -1;
+                                } else {
+                                    return a.id - b.id;
+                                }
+                            });
+
+                            for (let i = 0; i < punishments.length; i++) {
+                                const punishment = punishments[i];
+                                if (punishment.is_seconded) {
+                                    punishmentsString += `- ${punishment.description}`;
+                                } else if (prevWasSeconded) {
+                                    prevWasSeconded = false;
+
+                                    punishmentsString += "\n__Proposed punishments__\n";
+                                    punishmentsString += `- ${punishment.description}`;
+                                } else {
+                                    punishmentsString += `- ${punishment.description}`;
+                                }
+                                punishmentsString += "\n";
+                            }
+
+                            const embed = new EmbedBuilder()
+                                .setTitle("Punishments")
+                                .setDescription(punishmentsString)
+                                .setFooter({
+                                    text: `Requested by ${interaction.user.username}`,
+                                    iconURL: interaction.user.avatarURL() ?? undefined
+                                });
+
+                            await interaction.reply({embeds: [embed]});
+                        } catch (error) {
+                            console.error(error);
+                            await interaction.reply({
+                                content: "Something went wrong when listing all roster punishments...",
+                                ephemeral: true
+                            });
                         }
-                    });
+                        break;
+                    case "mine":
+                        try {
+                            const failures = await FailureService.getActiveForUser(interaction.user);
+                            if (failures.length === 0) {
+                                await interaction.reply({
+                                    content: "You don't have any pending failures. Nice work!",
+                                    ephemeral: true
+                                });
+                            } else {
+                                const embed = new EmbedBuilder()
+                                    .setTitle(`Pending failures/punishments for ${interaction.user.username}`)
+                                    .setThumbnail(interaction.user.displayAvatarURL())
+                                    .setColor(Colors.Blurple);
 
-                    for (let i = 0; i < punishments.length; i++) {
-                        const punishment = punishments[i];
-                        if (punishment.is_seconded) {
-                            punishmentsString += `- ${punishment.description}`;
-                        } else if (prevWasSeconded) {
-                            prevWasSeconded = false;
+                                for (const failure of failures) {
+                                    const formattedFailedAt = new Date(failure.failed_at).toLocaleDateString();
 
-                            punishmentsString += "\n__Proposed punishments__\n";
-                            punishmentsString += `- ${punishment.description}`;
-                        } else {
-                            punishmentsString += `- ${punishment.description}`;
+                                    embed.addFields(
+                                        {name: "Failed goal", value: `${failure.goals!.title} (${formattedFailedAt})`},
+                                        {name: "Punishment", value: failure.punishments!.description}
+                                    );
+                                }
+
+                                await interaction.reply({embeds: [embed]});
+                            }
+                        } catch (error) {
+                            console.error(error);
+                            await interaction.reply({
+                                content: "Something went wrong when listing your punishments...",
+                                ephemeral: true
+                            });
                         }
-                        punishmentsString += "\n";
-                    }
+                        break;
+                    default:
+                        try {
+                            const allFailures = await FailureService.getAllActive();
 
-                    const embed = new EmbedBuilder()
-                        .setTitle("Punishments")
-                        .setDescription(punishmentsString)
-                        .setFooter({
-                            text: `Requested by ${interaction.user.username}`,
-                            iconURL: interaction.user.avatarURL() ?? undefined
-                        });
+                            if (allFailures.length === 0) {
+                                await interaction.reply({
+                                    content: "The group has no pending failures. Nice work!",
+                                    ephemeral: true
+                                });
+                            } else {
+                                const embed = new EmbedBuilder()
+                                    .setTitle("All pending punishments")
+                                    .setColor(Colors.Blurple);
 
-                    await interaction.reply({embeds: [embed]});
-                } catch (error) {
-                    console.error(error);
-                    await interaction.reply({
-                        content: "Something went wrong when listing all punishments...",
-                        ephemeral: true
-                    });
+                                let failsString = ""
+
+                                for (const failure of allFailures) {
+                                    failsString += `- ${failure.users!.username}: ${failure.punishments!.description}\n`
+                                }
+
+                                embed.setDescription(failsString);
+
+                                await interaction.reply({embeds: [embed]});
+                            }
+                        } catch (error) {
+                            console.error(error);
+                            await interaction.reply({
+                                content: "Something went wrong when listing all punishments...",
+                                ephemeral: true
+                            });
+                        }
                 }
+
                 break;
             default:
                 await interaction.reply({content: "You need to pick a subcommand!", ephemeral: true});

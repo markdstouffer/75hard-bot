@@ -31,7 +31,7 @@ export class GoalService {
             .from(Table.Users)
             .select(`
                 discord_id,
-                ${Table.Goals} (*)
+                ${Table.Goals}!inner(*)
             `)
             .eq("discord_id", id)
             .eq("goals.is_active", true);
