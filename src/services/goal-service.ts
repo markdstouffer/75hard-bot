@@ -4,8 +4,12 @@ import {Function, Goal, Table} from "@internalTypes/database";
 
 export class GoalService {
 
-    public static add = async (user: User, title: string, description: string | null, isDaily: boolean | null): Promise<Goal> => {
+    public static add = async (user: User, title: string, description: string | null, isDaily: boolean | null, frequency: number | null): Promise<Goal> => {
         const {id, username} = user;
+
+        const freq = isDaily
+            ? 7
+            : frequency;
 
         const {data, error} = await supabase
             .rpc(
@@ -14,7 +18,8 @@ export class GoalService {
                     _username: username,
                     _title: title,
                     _description: description ?? undefined,
-                    _is_daily: isDaily ?? undefined
+                    _is_daily: isDaily ?? undefined,
+                    _frequency: freq ?? undefined
                 }
             )
 

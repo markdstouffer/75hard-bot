@@ -11,24 +11,30 @@ If a goal is failed (`/fail`), a random punishment from the list is selected and
 To allow for extenuating circumstances, a group (3+ approvals) may forgive (`/forgive`) a failure and the punishment is cleared.
 
 ### Goals
-- Set your own goals with `/goal add [title] [description?] [is_daily? DEFAULT=TRUE]`
-- See a list of your (or someone else's) goals with `/goal list [user?]`
-- Remove a goal with `/goal remove [title]`
-- Admit to a goal failure with `/fail [goal title]`
+- `/goal add [title] [description?] [is_daily? DEFAULT=FALSE] [frequency?]` - set your own goals 
+- `/goal list [user?]` - see a list of your (or someone else's) goals
+-  `/goal remove [title]` - remove a goal
+- `/fail [goal title]` - admit to a goal failure
 
 ### Punishments
-- Suggest a punishment with `/punishment suggest [description]`
-- Second a punishment (entering it into the roster) with `/punishment second [description]`
-- Remove a suggested punishment with `/punishment remove [description]`
-- Forgive another user's failure with `/forgive [failure description]` (requires 3 forgives before clearing the punishment)
+- `/punishment suggest [description]`- suggest a punishment 
+- `/punishment second [description]` - second a punishment (entering it into the roster) 
+- `/punishment remove [description]` - remove a suggested punishment 
+- `/punishment list [scope=roster|mine|all]` - list punishments (in the roster, your pending, or all pending) 
+- `/forgive [failure description]` - forgive another user's failure (requires 3 forgives before clearing the punishment)
+- `/resolve [punishment description]` - mark one of your punishments as resolved after completing 
 
+### Tracking
+- `/progress` - see the progress of your tracked goals 
+- `/done dailies` - add 1 completion to all of your daily goals 
+- `/done goal [title] [count]` - increment completions for a goal 
 
+### Groups
+- `/group init` - create a group 
+- `/group join [group]` - join a group 
+- `/group start [date]` - set a start date for the group 
+- `/countdown` - see how much time until/is remaining in your group's challenge 
 
 #### Backlog
-- Implement goal tracking
-  - Allow users to enter in goal metrics (e.g. 'completed 5 HIIT workouts this week')
-  - Automate failures for missing their target metrics
-- Progress commands
-  - Dependent on above goal tracking
-  - See your own & others' progress on goals
-  - Summary view to see all group members' streaks
+- Automate failures for missing target goal metrics
+- Progress summary view to see all group members' streaks

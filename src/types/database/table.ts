@@ -4,5 +4,6 @@ export enum Table {
     Failures = 'failures',
     Punishments = 'punishments',
     Forgives = 'forgives',
-    Groups = 'groups'
+    Groups = 'groups',
+    Progress = 'progress'
 }
