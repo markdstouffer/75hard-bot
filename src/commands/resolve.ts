@@ -27,13 +27,13 @@ module.exports = {
 
             await FailureService.resolve(failureId);
             const completedFailure = await FailureService.getById(failureId);
-
+            const formattedFailedAt = new Date(completedFailure.failed_at).toLocaleDateString();
 
             const embed = new EmbedBuilder()
                 .setTitle(`${interaction.user.username} has completed a punishment`)
                 .setDescription("They are cleared of all wrong-doing!")
                 .addFields([
-                    {name: "Failed goal", value: completedFailure.goals!.title},
+                    {name: "Failed goal", value: `${completedFailure.goals!.title} (${formattedFailedAt})`},
                     {name: "Completed punishment", value: completedFailure.punishments!.description}
                 ])
                 .setColor(Colors.Green);

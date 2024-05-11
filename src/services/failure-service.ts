@@ -37,6 +37,24 @@ export class FailureService {
         return data;
     }
 
+    public static getAllActive = async (): Promise<CompleteFailure[]> => {
+        const {data, error} = await supabase
+            .from(Table.Failures)
+            .select(`
+                *,
+                ${Table.Punishments} (description),
+                ${Table.Goals} (title),
+                ${Table.Users} (username)
+            `)
+            .eq("is_forgiven", false)
+            .eq("is_completed", false);
+
+        if (error)
+            throw error;
+
+        return data;
+    }
+
     public static getById = async (id: number): Promise<CompleteFailure> => {
         const {data, error} = await supabase
             .from(Table.Failures)
