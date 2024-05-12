@@ -20,7 +20,7 @@ export const getThisSunday = (): string => {
     const today = new Date();
     const sundayDate = today.getDate() - today.getDay();
     const sunday = new Date(today.setDate(sundayDate));
-    sunday.setHours(0, 0, 0, 0);
+    sunday.setUTCHours(4, 0, 0, 0);
 
     return sunday.toUTCString();
 }
