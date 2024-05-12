@@ -19,8 +19,6 @@ export class ProgressService {
 
         const thisSunday = getThisSunday();
 
-        console.log(thisSunday);
-
         const {data, error} = await supabase
             .from(Table.Progress)
             .select(`

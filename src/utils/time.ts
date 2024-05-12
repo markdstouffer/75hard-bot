@@ -1,4 +1,5 @@
 import {TimeSpan} from "@internalTypes/shared";
+import {previousSunday, startOfDay} from "date-fns";
 
 export const timeUntil = (endDate: Date): TimeSpan => {
     const diff = Math.abs(endDate.getTime() - Date.now());
@@ -18,8 +19,8 @@ export const timeUntil = (endDate: Date): TimeSpan => {
 
 export const getThisSunday = (): string => {
     const today = new Date();
-    const sundayDate = today.getDate() - today.getDay();
-    const sunday = new Date(today.setDate(sundayDate));
+    const startOfToday = startOfDay(today);
+    const sunday = previousSunday(startOfToday);
     sunday.setUTCHours(4, 0, 0, 0);
 
     return sunday.toUTCString();
