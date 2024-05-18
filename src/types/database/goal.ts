@@ -5,4 +5,5 @@ export type Goal = {
     is_daily: boolean
     title: string
     user_id: number
+    frequency: number | null;
 }

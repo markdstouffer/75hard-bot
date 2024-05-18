@@ -4,7 +4,8 @@ export enum Function {
     SecondPunishment = "second_punishment",
     AddFailure = "add_failure",
     AddForgive = "add_forgive",
-    UpdateProgress = "update_progress",
+    PopulateProgress = "populate_progress",
     IncrementProgress = "increment_progress",
-    IncrementDailies = "increment_dailies"
+    CheckProgress = "check_progress",
+    ClearProgress = "clear_progress"
 }

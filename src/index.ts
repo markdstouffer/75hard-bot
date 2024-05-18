@@ -1,15 +1,18 @@
-import {Client, Collection, Events, GatewayIntentBits, REST, Routes} from "discord.js";
+import {Client, Collection, Events, GatewayIntentBits, REST, Routes, TextBasedChannel} from "discord.js";
 import {configDotenv} from "dotenv";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {CronJob} from "cron";
 import {ProgressService} from "@services/progress-service";
+import {autoFail} from "@utils/auto-fails";
+import {getIncompleteGoalsEmbed} from "@utils/incomplete-embed";
 
 configDotenv();
 
 const BOT_TOKEN = process.env.BOT_TOKEN!;
 const CLIENT_ID = process.env.CLIENT_ID!;
 const GUILD_ID = process.env.GUILD_ID!;
+const GUILD_CHANNEL_ID = process.env.GUILD_CHANNEL_ID!;
 
 const client = new Client({intents: [GatewayIntentBits.Guilds]});
 client.commands = new Collection();
@@ -67,7 +70,10 @@ client.on(Events.InteractionCreate, async interaction => {
         } catch (error) {
             console.error(error);
             if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({content: "There was an error while executing this command!", ephemeral: true});
+                await interaction.followUp({
+                    content: "There was an error while executing this command!",
+                    ephemeral: true
+                });
             } else {
                 await interaction.reply({content: "There was an error while executing this command!", ephemeral: true});
             }
@@ -81,10 +87,26 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
+
+// CRON JOBS
+
+const autoFailWarningJob = new CronJob(
+    '55 23 * * 6',
+    async () => {
+        const channel = await client.channels.fetch(GUILD_CHANNEL_ID, {cache: true}) as TextBasedChannel;
+        await channel.send({embeds: [await getIncompleteGoalsEmbed(true)]});
+    },
+    null,
+    true,
+    'America/New_York'
+);
+
 const weeklyProgressUpdateJob = new CronJob(
     '0 0 * * 0',
     async () => {
-        await ProgressService.weeklyUpdate()
+        const channel = await client.channels.fetch(GUILD_CHANNEL_ID, {cache: true}) as TextBasedChannel;
+        await autoFail(channel);
+        await ProgressService.resetProgress();
     },
     null,
     true,

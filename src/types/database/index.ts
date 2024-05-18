@@ -11,3 +11,5 @@ export {CompleteFailure} from "./complete-failure";
 export {Group} from "./group";
 export {Progress} from "./progress";
 export {CompleteProgress} from "./complete-progress";
+export {GoalProgress} from "./goal-progress";
+export {FailurePunishment} from "./failure-punishment";

@@ -1,16 +1,14 @@
-import {User} from "discord.js";
+import {Snowflake, User} from "discord.js";
 import {supabase} from "@utils/supabase";
 import {Failure, CompleteFailure, Function, Table} from "@internalTypes/database";
 
 export class FailureService {
 
-    public static add = async (user: User, goalTitle: string, punishmentId: number): Promise<Failure> => {
-        const {id} = user;
-
+    public static add = async (discordId: Snowflake, goalTitle: string, punishmentId: number): Promise<Failure> => {
         const {data, error} = await supabase
             .rpc(
                 Function.AddFailure, {
-                    _discord_id: id,
+                    _discord_id: discordId,
                     _goal_title: goalTitle,
                     _punishment_id: punishmentId
                 }
@@ -73,6 +71,23 @@ export class FailureService {
             throw new Error("There is no failure with that id.");
 
         return data[0];
+    }
+
+    public static getByGoalIdForWeek = async (goalId: number): Promise<Failure[]> => {
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        const {data, error} = await supabase
+            .from(Table.Failures)
+            .select()
+            .eq("goal_id", goalId)
+            .gte("failed_at", oneWeekAgo.toISOString())
+            .lte("failed_at", new Date().toISOString());
+
+        if (error)
+            throw error;
+
+        return data ?? [];
     }
 
     public static getActiveForUser = async (user: User): Promise<CompleteFailure[]> => {

@@ -11,7 +11,7 @@ module.exports = {
         .setDescription("See the progress of your tracked goals"),
     async execute(interaction: ChatInputCommandInteraction) {
         try {
-            const trackedProgress = await ProgressService.getForUserThisWeek(interaction.user);
+            const trackedProgress = await ProgressService.getForUser(interaction.user);
 
             if (trackedProgress.length === 0) {
                 await interaction.reply({content: "You have no tracked goals. `/goal add`", ephemeral: true});

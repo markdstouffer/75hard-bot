@@ -5,9 +5,8 @@ import {
     EmbedBuilder,
     SlashCommandBuilder
 } from "discord.js";
-import {PunishmentService} from "@services/punishment-service";
 import {GoalService} from "@services/goal-service";
-import {FailureService} from "@services/failure-service";
+import {generateFailure} from "@utils/auto-fails";
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -23,15 +22,13 @@ module.exports = {
         const failedGoal = interaction.options.getString("goal")!;
 
         try {
-            const randomPunishment = await PunishmentService.getRandom();
-
-            await FailureService.add(interaction.user, failedGoal, randomPunishment.id);
+            const {punishment} = await generateFailure(failedGoal, interaction.user.id);
 
             const embed = new EmbedBuilder()
                 .setTitle(`${interaction.user.username} has failed on a goal`)
                 .addFields([
                     {name: "Goal", value: failedGoal},
-                    {name: "Punishment", value: randomPunishment.description}
+                    {name: "Punishment", value: punishment.description}
                 ])
                 .setColor(Colors.Red);
 

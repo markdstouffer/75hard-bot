@@ -57,7 +57,9 @@ export class GoalService {
         if (error)
             throw error;
 
-        return data;
+        await supabase.from(Table.Progress).delete().eq("goal_id", goalId);
+
+        return data ?? [];
     }
 
 }

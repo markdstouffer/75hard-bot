@@ -1,23 +1,28 @@
 import {supabase} from "@utils/supabase";
-import {CompleteProgress, Function, Progress, Table} from "@internalTypes/database";
+import {CompleteProgress, Function, GoalProgress, Progress, Table} from "@internalTypes/database";
 import {User} from "discord.js";
-import {getThisSunday} from "@utils/time";
 
 export class ProgressService {
 
-    public static weeklyUpdate = async (): Promise<void> => {
-
+    public static populateProgress = async (): Promise<void> => {
         const {error} = await supabase
-            .rpc(Function.UpdateProgress);
+            .rpc(Function.PopulateProgress);
 
         if (error)
             throw error;
     }
 
-    public static getForUserThisWeek = async (user: User): Promise<CompleteProgress[]> => {
-        const {id} = user;
+    public static resetProgress = async (): Promise<void> => {
+        const {error} = await supabase
+            .rpc(Function.ClearProgress);
 
-        const thisSunday = getThisSunday();
+        if (error)
+            throw error;
+    }
+
+
+    public static getForUser = async (user: User): Promise<CompleteProgress[]> => {
+        const {id} = user;
 
         const {data, error} = await supabase
             .from(Table.Progress)
@@ -26,8 +31,7 @@ export class ProgressService {
                 ${Table.Goals}!inner(title, frequency),
                 ${Table.Users}!inner(discord_id)
             `)
-            .eq("users.discord_id", id)
-            .eq("week_start", thisSunday);
+            .eq("users.discord_id", id);
 
         if (error)
             throw error;
@@ -38,14 +42,11 @@ export class ProgressService {
     public static increment = async (user: User, goalId: number, count: number): Promise<Progress> => {
         const {id} = user;
 
-        const thisSunday = getThisSunday();
-
         const {data, error} = await supabase
             .rpc(Function.IncrementProgress, {
                 _discord_id: id,
                 _count: count,
-                _goal_id: goalId,
-                _week_start: thisSunday
+                _goal_id: goalId
             });
 
         if (error)
@@ -54,21 +55,36 @@ export class ProgressService {
         return data;
     }
 
-    public static incrementDailies = async (user: User): Promise<void> => {
-        const {id} = user;
+    public static getAllUnfinished = async (): Promise<GoalProgress[]> => {
+        const ids = await this.getUnfinishedIds();
 
-        const thisSunday = getThisSunday();
-
-        const {error} = await supabase
-            .rpc(Function.IncrementDailies, {
-                _discord_id: id,
-                _week_start: thisSunday
-            });
+        const {data, error} = await supabase
+            .from(Table.Progress)
+            .select(`
+                completions,
+                ${Table.Goals}!inner(*),
+                ${Table.Users}!inner(discord_id)
+            `)
+            .in("goals.id", ids);
 
         if (error)
             throw error;
 
-        return;
+        return data?.map(d => ({
+            ...d.goals,
+            ...d.users,
+            completions: d.completions
+        })) ?? [];
+    }
+
+    private static getUnfinishedIds = async (): Promise<number[]> => {
+        const {data, error} = await supabase
+            .rpc(Function.CheckProgress);
+
+        if (error)
+            throw error;
+
+        return data ?? [];
     }
 
 }

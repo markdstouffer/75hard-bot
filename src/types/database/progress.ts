@@ -3,5 +3,4 @@ export type Progress = {
     goal_id: number
     id: number
     user_id: number
-    week_start: string
 }
