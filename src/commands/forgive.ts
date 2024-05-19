@@ -62,7 +62,7 @@ module.exports = {
         }
     },
     async autocomplete(interaction: AutocompleteInteraction) {
-        const failures = await FailureService.getAll();
+        const failures = await FailureService.getAllActive();
         const failuresData = failures.map(failure => {
             const failedAt = new Date(failure.failed_at).toLocaleDateString("en-US", {
                 weekday: "short",
